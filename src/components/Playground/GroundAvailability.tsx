@@ -1,0 +1,72 @@
+'use client';
+
+import React, { useState } from 'react';
+
+import { Button } from '../ui/button';
+import Pagination from '../ui/pagination';
+import DataTable from '../Common/DataTable';
+
+import { GoPlus } from "react-icons/go";
+import { useGetAllAvailableGroundsQuery } from '@/redux/api/playground/ground';
+
+const GroundAvailability = () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const { data, isLoading } = useGetAllAvailableGroundsQuery(currentPage);
+
+    const formattedData = data?.result?.data?.map((
+        entry: {
+            _id: string,
+            category: { name: string },
+            location: { address: string },
+            name: string,
+            pricePerHour: number,
+            maxGroupMembers: number,
+            openingStartTime: string,
+            openingEndTime: string,
+            isAvailable: boolean
+        }) => ({
+            "Id": entry?._id,
+            "Gound Name": entry?.name,
+            "Category": entry?.category?.name,
+            "Location": entry?.location?.address,
+            "Rent Per Hour": entry?.pricePerHour,
+            "Max Group Members": entry?.maxGroupMembers,
+            "Start Time": entry?.openingStartTime,
+            "End Time": entry?.openingEndTime,
+            "Availability": entry?.isAvailable ? 'Available' : 'N/A',
+        }));
+
+    return (
+        <div>
+            <DataTable
+                title="Ground Availability"
+                data={formattedData}
+                isLoading={isLoading}
+                isButton={true}
+                buttonText="Add Ground"
+                icon={<GoPlus className='h-6 w-6 text-white' />}
+                currentPage={currentPage}
+            />
+
+            {
+                formattedData?.length ?
+                    <div className='flex flex-col md:flex-row justify-between items-center gap-6 mt-8'>
+                        <div className='text-base text-[#4A4A4A] flex items-center justify-start gap-2'>
+                            <span>Show</span>
+                            <Button
+                                variant="default"
+                                size="icon"
+                                className="h-8 w-8 rounded-none bg-[#FF6B001A] text-[#FF6B00] hover:bg-[#FF6B001A]"
+                            >
+                                {formattedData?.length}
+                            </Button>
+                            <span>from {data?.result?.meta?.total}</span>
+                        </div>
+                        <Pagination totalPage={data?.result?.meta?.totalPages} setCurrentPage={setCurrentPage} currentPage={currentPage} />
+                    </div> : null
+            }
+        </div>
+    );
+};
+
+export default GroundAvailability;
